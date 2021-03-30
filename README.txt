@@ -1,0 +1,1 @@
+clingo -n 1 --rand-freq=1 --seed=%random% puzzle_gen.lp
