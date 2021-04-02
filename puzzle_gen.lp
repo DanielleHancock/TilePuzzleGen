@@ -1,45 +1,44 @@
-#const width=5.
+#const width=10.
 #const height=5.
-#const min_solve_length = 10.
-#const max_solve_length = 25.
+#const min_solve_length = width.
+#const max_solve_length = (width+height)*2.
 
-dim(1..width).
+start(1,1).
+finish(width,height).
+
+width_dim(1..width).
+height_dim(1..height).
+step(0,-1; 0,1; 1,0; -1,0).
+
 tile_type(red;pink;yellow;blue;purple;orange).
+not_yellow(red;pink;blue;purple;orange).
 scent(no_scent;orange_scent).
 
 1 {at(X,Y,T) : tile_type(T)} 1
-  :- dim(X), dim(Y).
+  :- width_dim(X), height_dim(Y).
 
-% pink tiles are always passable
-pink_tile(pink).
-orange_tile(orange).
-
-passable(X,Y) :- at(X,Y,T), pink_tile(T).
-orange(X,Y) :- at(X,Y,T), orange_tile(T).
+pink(X,Y) :- at(X,Y,pink).
+orange(X,Y) :- at(X,Y,orange).
 
 % blue tile is electric if it adjacent to a yellow tile
 not_electric_blue(X,Y) :- at(X,Y,blue), 
-	not at(X,Y+1, yellow), 
-	not at (X,Y-1, yellow), 
-	not at(X+1,Y,yellow), 
-	not at(X-1,Y, yellow).
+	at(X,Y+1, not_yellow), 
+	at (X,Y-1, not_yellow), 
+	at(X+1,Y, not_yellow), 
+	at(X-1,Y, not_yellow).
 
-start(1,1).
-finish(width,width).
-
-step(0,-1; 0,1; 1,0; -1,0).
-
-reachable_in(X,Y,0,no_scent) :- start(X,Y), passable(X,Y).
+reachable_in(X,Y,0,no_scent) :- start(X,Y), pink(X,Y).
 reachable_in(X,Y,0,orange_scent) :- start(X,Y), orange(X,Y).
 
 % Player can move to any adjacent pink tile (Player's scent is unchanged)
 reachable_in(NX, NY, T+1, S) :-
 	reachable_in(X,Y,T,S),
 	T < max_solve_length,
+	scent(S),
 	step(DX, DY),
 	NX = X + DX,
 	NY = Y + DY,	
-	passable(NX,NY).
+	pink(NX,NY).
 
 % Player can move to an adjacent blue tile if its not electrified and player does not have orange scent
 reachable_in(NX, NY, T+1, no_scent) :-
@@ -70,7 +69,7 @@ reachable_in(NX, NY, T+N, no_scent) :-
 	NX = X + DX*N,
 	NY = Y + DY*N,
 	at(X+DX..X+DX*(N-1), Y+DY..Y+DY*(N-1), purple),
-	passable(NX,NY).
+	pink(NX,NY).
 
 reachable_in(NX, NY, T+N, no_scent) :-
 	reachable_in(X,Y,T,S),
@@ -94,7 +93,7 @@ reachable_in(NX, NY, T+N, orange_scent) :-
 	orange(NX,NY).
 
 
-finish_in(T) :- finish(X,Y), reachable_in(X, Y, T, S).
+finish_in(T) :- finish(X,Y), reachable_in(X, Y, T, S), scent(S).
 
 % There must be a solution with length < max_solve_length.
 finish_in(max_solve_length).
