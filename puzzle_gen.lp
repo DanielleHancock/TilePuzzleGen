@@ -1,10 +1,12 @@
 #const width=5.
 #const height=5.
-#const min_solve_length = 1.
-#const max_solve_length = width*height.
+#const min_solve_length = width.
+#const max_solve_length = (width*height)/2.
 
 start(1,1).
 finish(width,height).
+at_least(blue,2).
+at_least(orange,2).
 
 width_dim(1..width).
 height_dim(1..height).
@@ -102,8 +104,16 @@ finish_in(max_solve_length).
 % There cannot exist a solution with length < min_solve_length.
 :- finish_in(T), T < min_solve_length.
 
+% Count how many tiles are of each type.
 1 {num_tiles(Tile, Num)} 1 
 	:- tile_type(Tile), Num = #count{X,Y : at(X,Y,Tile)}.
+
+% A single tile type cannot have two different values for num_tiles
+:- num_tiles(Tile, Num1), num_tiles(Tile, Num2), Num1!=Num2.
+
+% States that the number of tiles of type Tile is at least Num
+at_least(Tile, Min) :- num_tiles(Tile, Num), Num >= Min, integer(Min).
+:- at_least(Tile,Min), num_tiles(Tile,Num), Num<Min.
 
 #show num_tiles/2.
 
