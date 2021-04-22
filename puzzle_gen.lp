@@ -1,4 +1,4 @@
-#const width=10.
+#const width=5.
 #const height=5.
 #const min_solve_length = width.
 #const max_solve_length = (width+height)*2.
@@ -101,5 +101,8 @@ finish_in(max_solve_length).
 % There cannot exist a solution with length < min_solve_length.
 :- finish_in(T), T < min_solve_length.
 
+num_tiles(T, N) :- tile_type(T), N = #count{X,Y : at(X,Y,T)}.
+
+#show num_tiles/2.
 
 #show at/3.
