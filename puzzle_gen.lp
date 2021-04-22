@@ -1,7 +1,7 @@
 #const width=5.
 #const height=5.
-#const min_solve_length = width.
-#const max_solve_length = (width+height)*2.
+#const min_solve_length = 1.
+#const max_solve_length = width*height.
 
 start(1,1).
 finish(width,height).
@@ -9,6 +9,7 @@ finish(width,height).
 width_dim(1..width).
 height_dim(1..height).
 step(0,-1; 0,1; 1,0; -1,0).
+integer(0..width*height).
 
 tile_type(red;pink;yellow;blue;purple;orange).
 not_yellow(red;pink;blue;purple;orange).
@@ -101,7 +102,8 @@ finish_in(max_solve_length).
 % There cannot exist a solution with length < min_solve_length.
 :- finish_in(T), T < min_solve_length.
 
-num_tiles(T, N) :- tile_type(T), N = #count{X,Y : at(X,Y,T)}.
+1 {num_tiles(Tile, Num)} 1 
+	:- tile_type(Tile), Num = #count{X,Y : at(X,Y,Tile)}.
 
 #show num_tiles/2.
 
