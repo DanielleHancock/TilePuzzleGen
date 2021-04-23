@@ -98,6 +98,11 @@ reachable_in(NX, NY, T+N, orange_scent) :-
 
 finish_in(T) :- finish(X,Y), reachable_in(X, Y, T, S), scent(S).
 
+shortest_solution(T) : finish_in(T).
+:- shortest_solution(T1), shortest_solution(T2), T1!=T2.
+
+#minimize{T : shortest_solution(T)}.
+
 % There must be a solution with length < max_solve_length.
 finish_in(max_solve_length).
 
@@ -118,3 +123,5 @@ at_least(Tile, Min) :- num_tiles(Tile, Num), Num >= Min, integer(Min).
 #show num_tiles/2.
 
 #show at/3.
+
+#show shortest_solution/1.
