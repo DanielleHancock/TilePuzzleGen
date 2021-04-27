@@ -5,8 +5,6 @@
 
 start(1,1).
 finish(width,height).
-at_least(blue,2).
-at_least(orange,2).
 
 width_dim(1..width).
 height_dim(1..height).
@@ -30,77 +28,83 @@ not_electric_blue(X,Y) :- at(X,Y,blue),
 	at(X+1,Y, not_yellow), 
 	at(X-1,Y, not_yellow).
 
-reachable_in(X,Y,0,no_scent) :- start(X,Y), pink(X,Y).
-reachable_in(X,Y,0,orange_scent) :- start(X,Y), orange(X,Y).
+reachable_in(X,Y,0,no_scent,X,Y) :- start(X,Y), pink(X,Y).
+reachable_in(X,Y,0,orange_scent,X,Y) :- start(X,Y), orange(X,Y).
 
 % Player can move to any adjacent pink tile (Player's scent is unchanged)
-reachable_in(NX, NY, T+1, S) :-
-	reachable_in(X,Y,T,S),
+reachable_in(NX, NY, T+1, S, X, Y) :-
+	reachable_in(X,Y,T,S,prevX,prevY),
 	T < max_solve_length,
 	scent(S),
 	step(DX, DY),
 	NX = X + DX,
 	NY = Y + DY,	
-	pink(NX,NY).
+	pink(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
 % Player can move to an adjacent blue tile if its not electrified and player does not have orange scent
-reachable_in(NX, NY, T+1, no_scent) :-
-	reachable_in(X,Y,T,no_scent),
+reachable_in(NX, NY, T+1, no_scent, X, Y) :-
+	reachable_in(X,Y,T,no_scent,prevX,prevY),
 	T < max_solve_length,
 	step(DX, DY),
 	NX = X + DX,
 	NY = Y + DY,	
-	not_electric_blue(NX,NY).
+	not_electric_blue(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
 % Player can move to an adjacent orange tile, and will receive orange scent
-reachable_in(NX, NY, T+1, orange_scent) :-
-	reachable_in(X,Y,T,S),
+reachable_in(NX, NY, T+1, orange_scent, X, Y) :-
+	reachable_in(X,Y,T,S,prevX,prevY),
 	T < max_solve_length,
 	step(DX, DY),
 	NX = X + DX,
 	NY = Y + DY,	
-	orange(NX,NY).
+	orange(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
 % Player can slide across a purple tile to the next tile
 % Sliding across purple tile erases player scent
 slidable_dist(2..width).
-reachable_in(NX, NY, T+N, no_scent) :-
-	reachable_in(X,Y,T,S),
+reachable_in(NX, NY, T+N, no_scent, X, Y) :-
+	reachable_in(X,Y,T,S,prevX,prevY),
 	T < max_solve_length,
 	step(DX, DY),
 	slidable_dist(N),
 	NX = X + DX*N,
 	NY = Y + DY*N,
 	at(X+DX..X+DX*(N-1), Y+DY..Y+DY*(N-1), purple),
-	pink(NX,NY).
+	pink(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
-reachable_in(NX, NY, T+N, no_scent) :-
-	reachable_in(X,Y,T,S),
+reachable_in(NX, NY, T+N, no_scent, x, Y) :-
+	reachable_in(X,Y,T,S,prevX,prevY),
 	T < max_solve_length,
 	step(DX, DY),
 	slidable_dist(N),
 	NX = X + DX*N,
 	NY = Y + DY*N,
 	at(X+DX..X+DX*(N-1), Y+DY..Y+DY*(N-1), purple),
-	not_electric_blue(NX,NY).
+	not_electric_blue(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
 
-reachable_in(NX, NY, T+N, orange_scent) :-
-	reachable_in(X,Y,T,S),
+reachable_in(NX, NY, T+N, orange_scent, X, Y) :-
+	reachable_in(X,Y,T,S,prevX,prevY),
 	T < max_solve_length,
 	step(DX, DY),
 	slidable_dist(N),
 	NX = X + DX*N,
 	NY = Y + DY*N,
 	at(X+DX..X+DX*(N-1), Y+DY..Y+DY*(N-1), purple),
-	orange(NX,NY).
+	orange(NX,NY),
+	(NX, NY) != (prevX, prevY).
 
 
-finish_in(T) :- finish(X,Y), reachable_in(X, Y, T, S), scent(S).
+finish_in(T) :- finish(X,Y), reachable_in(X, Y, T, _, _, _).
 
+% Find the length of the shortest solution
 shortest_solution(T) : finish_in(T).
 :- shortest_solution(T1), shortest_solution(T2), T1!=T2.
-
 #minimize{T : shortest_solution(T)}.
 
 % There must be a solution with length < max_solve_length.
@@ -120,8 +124,8 @@ finish_in(max_solve_length).
 at_least(Tile, Min) :- num_tiles(Tile, Num), Num >= Min, integer(Min).
 :- at_least(Tile,Min), num_tiles(Tile,Num), Num<Min.
 
+#show start/2.
+#show finish/2.
 #show num_tiles/2.
-
 #show at/3.
-
 #show shortest_solution/1.
